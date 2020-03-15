@@ -111,6 +111,35 @@ positions = [
 ]
 
 
+class UL_libs(UIList):
+    def draw_item(
+        self,
+        context,
+        layout,
+        data,
+        item,
+        icon,
+        active_data,
+        active_propname,
+        index,
+    ):
+        # layout = self.layout()
+        split = layout.split(factor=0.1)
+        split.prop(
+            item,
+            "name",
+            text="",
+            emboss=False,
+            translate=False,
+            icon="LIBRARY_DATA_DIRECT",
+            icon_only=True,
+        )
+        split.label(text="%s" % item.name)
+
+    def invoke(self, context, event):
+        pass
+
+
 class UL_items(UIList):
     def draw_item(
         self,
@@ -135,6 +164,35 @@ class UL_items(UIList):
             icon_only=True,
         )
         split.label(text="%s" % item.name[5:-10])
+
+    def invoke(self, context, event):
+        pass
+
+
+class UL_colls(UIList):
+    def draw_item(
+        self,
+        context,
+        layout,
+        data,
+        item,
+        icon,
+        active_data,
+        active_propname,
+        index,
+    ):
+        # layout = self.layout()
+        split = layout.split(factor=0.1)
+        split.prop(
+            item,
+            "name",
+            text="",
+            emboss=False,
+            translate=False,
+            icon="OUTLINER_OB_GROUP_INSTANCE",
+            icon_only=True,
+        )
+        split.label(text="%s" % item.name[2:])
 
     def invoke(self, context, event):
         pass
@@ -244,8 +302,10 @@ class eLinkerPanelLibrary(Panel):
         col = layout.column()
         col.operator("elinker.refresh_libraries", icon="FILE_REFRESH", text="")
         col.template_list(
-            "UI_UL_list",
-            "ui_lib_list",
+            # "UI_UL_list",
+            "UL_libs",
+            # "ui_lib_list",
+            "",
             addon_prefs,
             "elibrary_collection",
             wm,
@@ -277,8 +337,10 @@ class eLinkerPanelLibrary(Panel):
             colb.enabled = False
 
         colb.template_list(
-            "UI_UL_list",
-            "ui_group_list",
+            # "UI_UL_list",
+            "UL_colls",
+            # "ui_group_list",
+            "",
             wm,
             "elib_groups",
             wm,
@@ -692,7 +754,7 @@ class linkGroup(Operator):
     """Make a Dupli Group of the selected Group, and proxy any rig inside it"""
 
     bl_idname = "elinker.link_group"
-    bl_label = "Link Group"
+    bl_label = "Link Collection"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -779,7 +841,7 @@ class linkGroup(Operator):
 
         for ob in empty.instance_collection.all_objects:
             if ob.type == "ARMATURE":
-                bpy.ops.object.make_override_library(object="%s" % ob.name)
+                # bpy.ops.object.make_override_library(object="%s" % ob.name)
 
                 rig = bpy.context.object
                 rig.name = "%s_rig" % tmpname.lower()
@@ -1354,7 +1416,9 @@ class clearanimkeyshapes(Operator):
 classes = (
     eLibraryGroups,
     eLibraryLibs,
+    UL_libs,
     UL_items,
+    UL_colls,
     eLibraryProperties,
     eLinkerPreferences,
     eLinkerPanelLibrary,
