@@ -32,7 +32,7 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import AddonPreferences, PropertyGroup, Panel, Operator
+from bpy.types import AddonPreferences, PropertyGroup, Panel, Operator, UIList
 from bpy.props import (
     StringProperty,
     EnumProperty,
@@ -109,6 +109,35 @@ positions = [
     ("zero", "Zero", "", 1),
     ("cursor", "Cursor", "", 2),
 ]
+
+
+class UL_items(UIList):
+    def draw_item(
+        self,
+        context,
+        layout,
+        data,
+        item,
+        icon,
+        active_data,
+        active_propname,
+        index,
+    ):
+        # layout = self.layout()
+        split = layout.split(factor=0.1)
+        split.prop(
+            item,
+            "name",
+            text="",
+            emboss=False,
+            translate=False,
+            icon="FILE_BLEND",
+            icon_only=True,
+        )
+        split.label(text="%s" % item.name[5:-10])
+
+    def invoke(self, context, event):
+        pass
 
 
 class eLibraryProperties(PropertyGroup):
@@ -235,15 +264,12 @@ class eLinkerPanelLibrary(Panel):
         coll = row.column()
         if not len(wm.elib_libs) > 0:
             coll.enabled = False
+
+        self.libs_name = [l.name[5:-10] for l in wm.elib_libs]
+
         # coll.operator("elinker.load_library", icon="LINK_BLEND")
         coll.template_list(
-            "UI_UL_list",
-            "ui_library_list",
-            wm,
-            "elib_libs",
-            wm,
-            "elib_libs_index",
-            rows=5,
+            "UL_items", "", wm, "elib_libs", wm, "elib_libs_index", rows=5,
         )
 
         colb = row.column()
@@ -652,9 +678,12 @@ class loadLibraries(Operator):
                         if group.endswith(suff):
                             persg_item = persg_set.add()
                             persg_item.name = group
-                else:
+                elif lfile[3:5] in group and not ":" in group:
                     persg_item = persg_set.add()
                     persg_item.name = group
+                # else:
+                #     persg_item = persg_set.add()
+                #     persg_item.name = group
 
         return {"FINISHED"}
 
@@ -1325,6 +1354,7 @@ class clearanimkeyshapes(Operator):
 classes = (
     eLibraryGroups,
     eLibraryLibs,
+    UL_items,
     eLibraryProperties,
     eLinkerPreferences,
     eLinkerPanelLibrary,
