@@ -325,8 +325,6 @@ class eLinkerPanelLibrary(Panel):
         if not len(wm.elib_libs) > 0:
             coll.enabled = False
 
-        self.libs_name = [l.name[5:-10] for l in wm.elib_libs]
-
         # coll.operator("elinker.load_library", icon="LINK_BLEND")
         coll.template_list(
             "UL_items", "", wm, "elib_libs", wm, "elib_libs_index", rows=5,
@@ -768,6 +766,7 @@ class linkGroup(Operator):
             return {"CANCELLED"}
 
         gr = wm.elib_groups[wm.elib_groups_index].name
+        gr_count = []
         lfile = wm.elib_libs[wm.elib_libs_index].name
         lpath = elib_collection[wm.elibrary_collection_index].folderpath
         libfile = path.join(lpath, lfile)
