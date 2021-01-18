@@ -19,18 +19,18 @@
 # .pc2 export code based on io_export_pc2.py by Florian Meyer (tstscr)
 
 bl_info = {
-    "name": "eLinker",
-    "author": "Aditia A. Pratama,Eibriel, Florian Meyer",
+    "name": "DD Assets Linker",
+    "author": "Aditia A. Pratama",
     "version": (0, 2),
     "blender": (2, 80, 0),
     "location": "View3D > UI > Relations",
     "description": "Link groups with two clicks",
     "warning": "",
-    "wiki_url": "https://github.com/Eibriel/scripts/wiki",
-    "tracker_url": "https://github.com/Eibriel/scripts/issues",
+    "wiki_url": "https://github.com/aditiapratama/scripts/wiki",
+    "tracker_url": "https://github.com/aditiapratam/scripts/issues",
     "category": "Pipeline",
 }
-
+import sys
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup, Panel, Operator, UIList
 from bpy.props import (
@@ -40,7 +40,8 @@ from bpy.props import (
     CollectionProperty,
     IntProperty,
 )
-import os, json
+import os
+import json
 from os import path
 
 import mathutils, math, struct
@@ -163,7 +164,7 @@ class UL_items(UIList):
             icon="FILE_BLEND",
             icon_only=True,
         )
-        split.label(text="%s" % item.name[5:-10])
+        split.label(text="%s" % item.name[2:-10])
 
     def invoke(self, context, event):
         pass
@@ -286,7 +287,7 @@ class eLinkerPreferences(AddonPreferences):
 
 class eLinkerPanelLibrary(Panel):
     bl_idname = "elinker"
-    bl_label = "eLinker"
+    bl_label = "DD Linker"
     bl_category = "Relations"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -300,7 +301,9 @@ class eLinkerPanelLibrary(Panel):
         layout = self.layout
 
         col = layout.column()
-        col.operator("elinker.refresh_libraries", icon="FILE_REFRESH", text="")
+        row = col.grid_flow(align=True)
+        row.operator("elinker.refresh_libraries", icon="FILE_REFRESH", text="")
+        row.operator("elinker.load_preferences", icon="FILE_TICK", text="")
         col.template_list(
             # "UI_UL_list",
             "UL_libs",
@@ -349,7 +352,7 @@ class eLinkerPanelLibrary(Panel):
 
 class eLinkerPanelLinks(Panel):
     bl_idname = "elinker_options"
-    bl_label = "eLinker Options"
+    bl_label = "DD Linker Options"
     bl_category = "Relations"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -522,6 +525,7 @@ class savePref(Operator):
         addon_prefs = preferences.addons[__name__].preferences
         wm = context.window_manager
         userpath = bpy.utils.resource_path(type="USER")
+        addonpath = os.path.dirname(os.path.abspath(__file__))
 
         libraries = {}
         for elib in addon_prefs.elibrary_collection:
@@ -538,7 +542,7 @@ class savePref(Operator):
 
         jtext = json.dumps(jdata)
 
-        jpath = path.join(userpath, "elinker.conf")
+        jpath = path.join(addonpath, "assetlists.conf")
 
         jfile = None
         try:
@@ -564,7 +568,8 @@ class loadPref(Operator):
         addon_prefs = preferences.addons[__name__].preferences
         wm = context.window_manager
         userpath = bpy.utils.resource_path(type="USER")
-        jpath = path.join(userpath, "elinker.conf")
+        addonpath = os.path.dirname(os.path.abspath(__file__))
+        jpath = path.join(addonpath, "assetlists.conf")
 
         try:
             jfile = open(jpath, "r")
@@ -840,7 +845,7 @@ class linkGroup(Operator):
 
         for ob in empty.instance_collection.all_objects:
             if ob.type == "ARMATURE":
-                # bpy.ops.object.make_override_library(object="%s" % ob.name)
+                bpy.ops.object.proxy_make(object="%s" % ob.name)
 
                 rig = bpy.context.object
                 rig.name = "%s_rig" % tmpname.lower()
